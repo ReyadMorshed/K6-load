@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "k6:create-get:item": "k6 run k6-create-get-item.ts"
+    "test": "k6 run dist/main.js",
+    "k6:create-get:item": "k6 run k6-create-get-item.ts",
+    "build": "webpack",
+    "bundle": "webpack"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +15,9 @@
   "packageManager": "pnpm@10.27.0",
   "devDependencies": {
     "@types/k6": "^1.6.0",
-    "typescript": "^5.9.3"
+    "ts-loader": "^9.5.4",
+    "typescript": "^5.9.3",
+    "webpack": "^5.105.2",
+    "webpack-cli": "^6.0.1"
   }
 }
