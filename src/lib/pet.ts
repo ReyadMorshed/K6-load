@@ -1,5 +1,5 @@
 import http from "k6/http";
-const BASE_URL = "https://petstore.swagger.io/v2";
+const BASE_URL = __ENV.BASE_URL || "https://petstore.swagger.io/v2";
 
 export class PetAPI {
   static uploadImage(petId: number, fileData: any) {
