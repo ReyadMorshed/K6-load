@@ -3,18 +3,38 @@ import { Options } from "k6/options";
 import { PetAPI } from "./lib/pet";
 import { StoreAPI } from "./lib/store";
 import { UserAPI } from "./lib/user";
+import { htmlReport } from "./htmlReport.js";
 
-export const options: Options = {
-  stages: [
-    { duration: "30s", target: 10 },
-    { duration: "1m", target: 10 },
-    { duration: "30s", target: 0 },
-  ],
-  thresholds: {
-    http_req_duration: ["p(95)<500"],
-    http_req_failed: ["rate<0.01"],
+// 1. Define Load Profiles
+const profiles: { [key: string]: Options } = {
+  smoke: {
+    vus: 1,
+    duration: "10s",
+    thresholds: { http_req_failed: ["rate<0.01"] },
+  },
+  load: {
+    stages: [
+      { duration: "1m", target: 20 },
+      { duration: "2m", target: 20 },
+      { duration: "1m", target: 0 },
+    ],
+    thresholds: { http_req_duration: ["p(95)<500"] },
+  },
+  stress: {
+    stages: [
+      { duration: "1m", target: 100 },
+      { duration: "2m", target: 100 },
+      { duration: "1m", target: 0 },
+    ],
+  },
+  soak: {
+    vus: 10,
+    duration: "1h",
   },
 };
+
+// Select profile via ENV variable: PROFILE
+export const options: Options = profiles[__ENV.PROFILE || "smoke"];
 
 export default function () {
   const id = Math.floor(Math.random() * 1000000);
@@ -105,4 +125,14 @@ export default function () {
   });
 
   sleep(1);
+}
+
+export function handleSummary(data: any) {
+  const profile = __ENV.PROFILE || "smoke";
+  const reportPath = `reports/k6/${profile}/report.html`;
+
+  return {
+    [reportPath]: htmlReport(data), // Saves to the specific profile folder
+    stdout: JSON.stringify(data),
+  };
 }
