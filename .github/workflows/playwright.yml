@@ -26,6 +26,19 @@ jobs:
     - name: Setup k6
       uses: grafana/setup-k6-action@v1
       
+    # 1. Run the Smoke Test first to verify API health
     - name: Run k6 Smoke Test
-      # GitHub will automatically inject your secret URL here during the run
       run: k6 run -e PROFILE=smoke -e BASE_URL=${{ secrets.BASE_URL }} dist/main.js
+
+    # 2. Run the Load Test (only executes if Smoke passes)
+    - name: Run k6 Load Test
+      run: k6 run -e PROFILE=load -e BASE_URL=${{ secrets.BASE_URL }} dist/main.js
+      
+    # 3. Upload all generated reports as a single artifact
+    - name: Upload k6 Reports
+      uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }} # Uploads even if the tests fail due to thresholds
+      with:
+        name: k6-test-reports
+        path: reports/k6/     # This captures both smoke/report.html and load/report.html
+        retention-days: 30
